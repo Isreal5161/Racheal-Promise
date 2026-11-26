@@ -161,6 +161,53 @@
     }
   });
 
+  const accountNumber = document.querySelector("#account-number");
+  const copyAccountButton = document.querySelector("#copy-account-button");
+  const copyAccountStatus = document.querySelector("#copy-account-status");
+
+  function fallbackCopyText(text) {
+    const temporaryInput = document.createElement("textarea");
+    temporaryInput.value = text;
+    temporaryInput.setAttribute("readonly", "");
+    temporaryInput.style.position = "fixed";
+    temporaryInput.style.opacity = "0";
+    document.body.appendChild(temporaryInput);
+    temporaryInput.select();
+
+    let copied = false;
+    try {
+      copied = document.execCommand("copy");
+    } finally {
+      temporaryInput.remove();
+    }
+    return copied;
+  }
+
+  copyAccountButton.addEventListener("click", async () => {
+    const value = accountNumber.textContent.trim();
+    copyAccountStatus.textContent = "";
+
+    try {
+      if (window.isSecureContext && navigator.clipboard) {
+        try {
+          await navigator.clipboard.writeText(value);
+          copyAccountStatus.textContent = "Account number copied.";
+          return;
+        } catch {
+          // Use the selection-based fallback when clipboard permissions are unavailable.
+        }
+      }
+
+      if (fallbackCopyText(value)) {
+        copyAccountStatus.textContent = "Account number copied.";
+      } else {
+        copyAccountStatus.textContent = "Copy unavailable. Please select and copy the account number.";
+      }
+    } catch {
+      copyAccountStatus.textContent = "Copy unavailable. Please select and copy the account number.";
+    }
+  });
+
   const form = document.querySelector("#rsvp-form");
   const formStatus = document.querySelector("#form-status");
   const submitButton = form.querySelector(".submit-button");
