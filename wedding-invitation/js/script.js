@@ -30,6 +30,89 @@
   const menuToggle = document.querySelector(".menu-toggle");
   const nav = document.querySelector(".nav-links");
 
+  const envelopeIntro = document.querySelector("#envelope-intro");
+  const envelopeIntroHeading = document.querySelector("#envelope-intro-heading");
+  const envelopeOpenButton = document.querySelector("#envelope-open-button");
+  const envelopeSkipButton = document.querySelector("#envelope-skip");
+
+  if (envelopeIntro && envelopeIntroHeading && envelopeOpenButton && envelopeSkipButton) {
+    const pageElements = document.querySelectorAll(".skip-link, .site-header, main, .lightbox, .music-toggle");
+    const introTimers = [];
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let isOpening = false;
+    let isDismissed = false;
+
+    function scheduleIntroStep(callback, delay) {
+      introTimers.push(window.setTimeout(callback, delay));
+    }
+
+    function dismissEnvelopeIntro(immediate) {
+      if (isDismissed) return;
+      isDismissed = true;
+      introTimers.forEach(window.clearTimeout);
+      document.documentElement.classList.remove("envelope-active");
+      document.body.classList.remove("envelope-active");
+      pageElements.forEach((element) => { element.inert = false; });
+      envelopeIntro.inert = true;
+      envelopeIntro.setAttribute("aria-hidden", "true");
+      document.querySelector("#couple-names").focus({ preventScroll: true });
+
+      if (immediate) {
+        envelopeIntro.hidden = true;
+        return;
+      }
+
+      envelopeIntro.classList.add("envelope-intro--dismissed");
+      window.setTimeout(() => { envelopeIntro.hidden = true; }, reducedMotion.matches ? 50 : 900);
+    }
+
+    function openInvitation() {
+      if (isOpening || isDismissed) return;
+      isOpening = true;
+      envelopeOpenButton.setAttribute("aria-expanded", "true");
+      envelopeOpenButton.setAttribute("aria-label", "Opening the wedding invitation");
+      envelopeIntro.classList.add("envelope-intro--seal-broken");
+
+      if (reducedMotion.matches) {
+        envelopeIntro.classList.add("envelope-intro--flap-open", "envelope-intro--card-revealed");
+        scheduleIntroStep(() => dismissEnvelopeIntro(false), 550);
+        return;
+      }
+
+      scheduleIntroStep(() => envelopeIntro.classList.add("envelope-intro--flap-open"), 380);
+      scheduleIntroStep(() => envelopeIntro.classList.add("envelope-intro--card-revealed"), 1450);
+      scheduleIntroStep(() => dismissEnvelopeIntro(false), 3900);
+    }
+
+    envelopeOpenButton.addEventListener("click", openInvitation);
+    envelopeSkipButton.addEventListener("click", () => dismissEnvelopeIntro(true));
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !isDismissed) {
+        event.preventDefault();
+        dismissEnvelopeIntro(true);
+      } else if (event.key === "Tab" && !isDismissed) {
+        const firstControl = envelopeOpenButton;
+        const lastControl = envelopeSkipButton;
+
+        if (event.shiftKey && (document.activeElement === envelopeIntroHeading || document.activeElement === firstControl)) {
+          event.preventDefault();
+          lastControl.focus();
+        } else if (!event.shiftKey && document.activeElement === lastControl) {
+          event.preventDefault();
+          firstControl.focus();
+        }
+      }
+    });
+
+    pageElements.forEach((element) => { element.inert = true; });
+    document.documentElement.classList.add("envelope-active");
+    document.body.classList.add("envelope-active");
+    envelopeIntro.inert = false;
+    envelopeIntro.hidden = false;
+    envelopeIntro.setAttribute("aria-hidden", "false");
+    envelopeIntroHeading.focus({ preventScroll: true });
+  }
+
   function updateHeader() {
     header.classList.toggle("scrolled", window.scrollY > 50);
   }
