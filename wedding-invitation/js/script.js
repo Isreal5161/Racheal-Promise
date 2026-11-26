@@ -263,30 +263,37 @@
 
     const formData = new FormData(form);
     const guestName = formData.get("name").trim();
-    const email = formData.get("email").trim() || "Not provided";
+    const email = formData.get("email").trim();
     const phone = formData.get("phone").trim();
     const attendance = formData.get("attendance") === "Joyfully Accept"
       ? "Attending"
       : "Unable to Attend";
-    const guestCount = attendance === "Attending"
-      ? `${formData.get("guests")} ${formData.get("guests") === "1" ? "guest" : "guests"}`
-      : "N/A";
-    const personalMessage = formData.get("message").trim() || "Not provided";
-    const message = [
-      "WEDDING RSVP NOTIFICATION",
-      "",
-      "A new wedding RSVP has been received.",
-      "",
-      `Guest Name: ${guestName}`,
-      `Email: ${email}`,
+    const guestCount = `${formData.get("guests")} ${formData.get("guests") === "1" ? "guest" : "guests"}`;
+    const personalMessage = formData.get("message").trim();
+    const weddingNames = `${wedding.couple.groom} & ${wedding.couple.bride}`;
+    const attendanceMessage = attendance === "Attending"
+      ? `My name is ${guestName}, and I am delighted to confirm that I will be attending the wedding celebration of ${weddingNames}. ❤️`
+      : `I am sorry that I will not be able to attend the wedding celebration of ${weddingNames}. Please accept my warm wishes and congratulations.`;
+    const detailLines = [
+      `Full Name: ${guestName}`,
+      email && `Email: ${email}`,
       `Phone Number: ${phone}`,
       `Attendance: ${attendance}`,
       `Number of Guests: ${guestCount}`,
-      `Personal Message: ${personalMessage}`,
+      personalMessage && `Message: ${personalMessage}`
+    ].filter(Boolean);
+    const message = [
+      "Good day!",
       "",
-      `Wedding: ${wedding.couple.groom} & ${wedding.couple.bride}`,
+      attendanceMessage,
       "",
-      "Thank you."
+      "Here are my RSVP details:",
+      "",
+      ...detailLines,
+      "",
+      "Thank you for sharing this special moment with us. We look forward to celebrating with you!",
+      "",
+      "God bless you. ❤️"
     ].join("\n");
 
     RSVP_CONFIG.whatsappRecipients.forEach((recipient, index) => {
@@ -299,5 +306,9 @@
 
     confirmationMessage.textContent = "Your RSVP details are ready. Please send your response to our wedding contacts. Tap Send in WhatsApp to deliver it.";
     confirmation.hidden = false;
+    confirmation.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      block: "center"
+    });
   });
 })();
