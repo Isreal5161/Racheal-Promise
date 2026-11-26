@@ -21,7 +21,8 @@ Edit the `wedding` configuration near the top of `js/script.js`:
 - `bride`
 - `dateLabel`
 - `dateTime` — use ISO format, for example `2027-06-12T14:00:00`
-- `rsvpEndpoint` — add a Formspree, Google Apps Script or other HTTPS submission endpoint
+
+Edit the `RSVP_CONFIG.whatsappRecipients` array in `js/script.js` to update the two WhatsApp recipient names and international-format phone numbers. After validating the form, guests choose which contact to open; they must press Send in WhatsApp to deliver the RSVP.
 
 Names and wedding details can also be replaced throughout `index.html`. The following placeholders remain where specific information was not supplied:
 

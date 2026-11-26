@@ -355,6 +355,31 @@ blockquote cite {
 .submit-button:disabled { opacity: .65; cursor: wait; }
 .form-status { grid-column: 1 / -1; min-height: 1.4em; margin: 0; text-align: center;
   color: var(--burgundy); font-size: .82rem; }
+.rsvp-confirmation[hidden] { display: none; }
+.rsvp-confirmation {
+  grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1.5rem 3rem; align-items: center; padding: 2rem 0 0;
+  border-top: 1px solid rgba(198,161,91,.55);
+}
+.confirmation-copy .section-kicker { margin-bottom: .6rem; }
+.confirmation-copy h3 {
+  margin: 0; color: var(--burgundy); font-family: var(--serif);
+  font-size: clamp(2rem, 3vw, 3rem); font-weight: 500; line-height: 1;
+}
+.confirmation-copy > p:last-child { margin: .8rem 0 0; line-height: 1.65; font-size: .85rem; }
+.whatsapp-actions { display: grid; gap: .75rem; }
+.whatsapp-link {
+  min-height: 48px; display: flex; align-items: center; justify-content: center;
+  padding: .8rem 1rem; background: var(--burgundy); color: var(--ivory);
+  text-align: center; text-decoration: none; text-transform: uppercase;
+  font-size: .62rem; letter-spacing: .13em; transition: background .25s, color .25s;
+}
+.whatsapp-link:hover, .whatsapp-link:focus-visible { background: var(--champagne); color: var(--dark-wine); }
+.edit-rsvp-button {
+  justify-self: start; padding: .4rem 0; border: 0; border-bottom: 1px solid var(--champagne);
+  background: transparent; color: var(--burgundy); cursor: pointer;
+  text-transform: uppercase; font-size: .58rem; letter-spacing: .15em;
+}
 
 .prayer { background: var(--burgundy); color: var(--ivory); min-height: 82svh;
   display: grid; place-items: center; text-align: center; padding: 8rem var(--page-pad); }
@@ -415,6 +440,8 @@ blockquote cite {
 
 @media (max-width: 900px) {
   .site-header { height: 68px; }
+  .site-header.nav-open { z-index: 80; }
+  .site-header.nav-open.scrolled { backdrop-filter: none; }
   .nav-links {
     position: fixed; inset: 0; background: var(--dark-wine); display: flex;
     flex-direction: column; align-items: center; justify-content: center; gap: 2.2rem;
@@ -499,6 +526,8 @@ blockquote cite {
   .rsvp-header h2 { font-size: clamp(3.2rem, 14vw, 4.8rem); }
   .rsvp-form { grid-template-columns: 1fr; }
   .form-field, .attendance, .guest-count, .message-field, .submit-button, .form-status { grid-column: 1; }
+  .rsvp-confirmation { grid-template-columns: 1fr; gap: 1.5rem; }
+  .whatsapp-actions { width: 100%; }
   .prayer { min-height: auto; padding-top: 7rem; padding-bottom: 7rem; }
   .prayer h2 { font-size: clamp(3.2rem, 14vw, 4.8rem); }
   .prayer-text { font-size: 1.25rem; }

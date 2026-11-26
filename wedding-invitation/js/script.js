@@ -9,8 +9,21 @@
     },
     dateLabel: "5th DECEMBER 2026",
     // ISO format with local wedding time, for example: "2027-06-12T14:00:00"
-    dateTime: "2026-12-05T14:00:00",
-    rsvpEndpoint: "" // Paste a Formspree, Google Apps Script or other HTTPS endpoint here.
+    dateTime: "2026-12-05T14:00:00"
+  };
+
+  // WhatsApp RSVP contacts: use international numbers with digits only.
+  const RSVP_CONFIG = {
+    whatsappRecipients: [
+      {
+        name: "Wedding Contact 1",
+        number: "2349031784836"
+      },
+      {
+        name: "Wedding Contact 2",
+        number: "2348142439835"
+      }
+    ]
   };
 
   const header = document.querySelector(".site-header");
@@ -27,14 +40,18 @@
   menuToggle.addEventListener("click", () => {
     const open = menuToggle.getAttribute("aria-expanded") === "true";
     menuToggle.setAttribute("aria-expanded", String(!open));
+    menuToggle.setAttribute("aria-label", open ? "Open menu" : "Close menu");
     nav.classList.toggle("open", !open);
+    header.classList.toggle("nav-open", !open);
     document.body.classList.toggle("menu-open", !open);
   });
 
   nav.querySelectorAll("a").forEach((link) => {
     link.addEventListener("click", () => {
       menuToggle.setAttribute("aria-expanded", "false");
+      menuToggle.setAttribute("aria-label", "Open menu");
       nav.classList.remove("open");
+      header.classList.remove("nav-open");
       document.body.classList.remove("menu-open");
     });
   });
@@ -210,44 +227,77 @@
 
   const form = document.querySelector("#rsvp-form");
   const formStatus = document.querySelector("#form-status");
-  const submitButton = form.querySelector(".submit-button");
+  const confirmation = document.querySelector("#rsvp-confirmation");
+  const confirmationMessage = document.querySelector("#rsvp-confirmation-message");
+  const editResponseButton = document.querySelector("#edit-rsvp");
 
-  form.addEventListener("submit", async (event) => {
+  function hideConfirmation() {
+    confirmation.hidden = true;
+    formStatus.textContent = "";
+  }
+
+  form.addEventListener("input", hideConfirmation);
+  form.addEventListener("change", hideConfirmation);
+
+  editResponseButton.addEventListener("click", () => {
+    hideConfirmation();
+    form.querySelector("#guest-name").focus();
+  });
+
+  form.addEventListener("submit", (event) => {
     event.preventDefault();
     formStatus.textContent = "";
 
     if (!form.checkValidity()) {
-      formStatus.textContent = "Please complete the required fields before submitting.";
+      const invalidField = form.querySelector(":invalid");
+      if (invalidField.id === "guest-email") {
+        formStatus.textContent = "Please enter a valid email address or leave the email field blank.";
+      } else if (invalidField.id === "guest-phone") {
+        formStatus.textContent = "Please enter your phone number before preparing your RSVP.";
+      } else {
+        formStatus.textContent = "Please enter your name before preparing your RSVP.";
+      }
       form.reportValidity();
       return;
     }
 
-    if (!wedding.rsvpEndpoint) {
-      formStatus.textContent = "RSVP submission is not configured yet. Please contact the couple directly.";
-      return;
-    }
+    const formData = new FormData(form);
+    const guestName = formData.get("name").trim();
+    const email = formData.get("email").trim() || "Not provided";
+    const phone = formData.get("phone").trim();
+    const attendance = formData.get("attendance") === "Joyfully Accept"
+      ? "Attending"
+      : "Unable to Attend";
+    const guestCount = attendance === "Attending"
+      ? `${formData.get("guests")} ${formData.get("guests") === "1" ? "guest" : "guests"}`
+      : "N/A";
+    const personalMessage = formData.get("message").trim() || "Not provided";
+    const message = [
+      "WEDDING RSVP NOTIFICATION",
+      "",
+      "A new wedding RSVP has been received.",
+      "",
+      `Guest Name: ${guestName}`,
+      `Email: ${email}`,
+      `Phone Number: ${phone}`,
+      `Attendance: ${attendance}`,
+      `Number of Guests: ${guestCount}`,
+      `Personal Message: ${personalMessage}`,
+      "",
+      `Wedding: ${wedding.couple.groom} & ${wedding.couple.bride}`,
+      "",
+      "Thank you."
+    ].join("\n");
 
-    submitButton.disabled = true;
-    submitButton.querySelector("span").textContent = "Sending...";
+    RSVP_CONFIG.whatsappRecipients.forEach((recipient, index) => {
+      const link = document.querySelector(`#whatsapp-contact-${index + 1}`);
+      const contactLabel = `Contact ${index + 1}`;
+      link.href = `https://wa.me/${recipient.number}?text=${encodeURIComponent(message)}`;
+      link.textContent = `Send RSVP to ${contactLabel}`;
+      link.setAttribute("aria-label", `Send RSVP to ${contactLabel} (${recipient.name})`);
+    });
 
-    try {
-      const response = await fetch(wedding.rsvpEndpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify(Object.fromEntries(new FormData(form)))
-      });
-
-      if (!response.ok) throw new Error(`Submission failed (${response.status})`);
-
-      form.reset();
-      formStatus.textContent = "Thank you. Your response has been received.";
-      submitButton.querySelector("span").textContent = "Response Sent";
-    } catch (error) {
-      console.error("RSVP submission error:", error);
-      formStatus.textContent = "We could not receive your response. Please try again or contact the couple.";
-      submitButton.querySelector("span").textContent = "Send RSVP";
-    } finally {
-      submitButton.disabled = false;
-    }
+    confirmationMessage.textContent = "Your RSVP details are ready. Please send your response to our wedding contacts. Tap Send in WhatsApp to deliver it.";
+    confirmation.hidden = false;
   });
 })();
